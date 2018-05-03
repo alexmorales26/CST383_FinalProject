@@ -1,0 +1,53 @@
+---
+title: "Crime Shit"
+author: "Dallas Dituri, Alexander Morales, Jennifer Nguyen"
+date: "May 3, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Load Date and Preprocess
+```{r}
+library(RSocrata)
+crime = read.socrata("https://data.lacity.org/A-Safe-City/Arrest-Data-from-2010-to-Present/yru6-6re4")
+rownames(crime) = crime$Report.ID
+crime = crime[,-1]
+
+#Remove Unwanted Features
+crime$Address = NULL
+crime$Cross.Street = NULL
+crime$Area.ID = NULL #ALready have Area.Name
+crime$Reporting.District = NULL
+crime$Charge = crime$Charge.Description
+crime$Charge.Description = NULL
+crime$Charge.Group.Code = NULL
+
+#Remove NAs
+crime[crime == ""] = NA
+crime = na.omit(crime)
+
+#Factor
+crime$Sex.Code = factor(crime$Sex.Code)
+crime$Descent.Code = factor(crime$Descent.Code)
+races = c("Asian (other)","Black","Chinese","Cambodian","Filipino","Guamanian","Hispanic","Native American","Japanese","Korean","Laotian",
+                              "Other", "Pacific Islander", "Samoan", "Hawaiian", "Vietnamese", "White", "Unknown", "Indian")
+code = c("A", "B", "C", "D", "F", "G", "H", "I", "J", "K", "L", "O", "P", "S", "U", "V", "W", "X", "Z")
+races = data.frame(Descent.Code = code, Descent = races)
+temp = merge(crime, races)
+```
+
+#TIME TO MOTHERFUCKING EXPLORE
+```{r}
+plot(density(crime$Age[crime$Sex.Code=="F"]), col="purple", xlab="Age", main="Age of Suspect")
+lines(density(crime$Age[crime$Sex.Code=="M"]), col="red")
+```
+
+```{r}
+plot(crime$Sex.Code, col = c("purple","darkred"))
+plot(crime$Descent.Code, col = c("purple","darkred"))
+```
+```{r}
+```
