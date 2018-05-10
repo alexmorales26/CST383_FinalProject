@@ -1,5 +1,5 @@
 ---
-title: "Los Angeles Arrest Exploration from 2010 to Present"
+title: "How Safe is Each Area in LA based of LA Arrest Data"
 author: "Dallas Dituri, Alexander Morales, Jennifer Nguyen"
 date: "May 3rd, 2018"
 output: html_document
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Introduction
-
+When moving to Los Angeles, it can be tricky to know where to move.  Crime rate is a huge factor in choosing a place to live, but also knowing the types of crimes that are committed
 
 ```{r, echo=TRUE}
 library(RSocrata)
@@ -19,7 +19,7 @@ rownames(crime) = crime$Report.ID
 crime = crime[,-1]
 ```
 ## Data Cleaning and Preprocessing
-
+The Data has a fairly low number of NAs and otherwise useless data, so there is not much of an issue with removing these.  There are also features we are not interested in using, such as address, cross street, and undescriptive codes, so we will remove these features as well.  
 
 ```{r}
 #Remove Unwanted Features
@@ -36,24 +36,102 @@ crime[crime == ""] = NA
 crime = na.omit(crime)
 
 #Factor
+crime$Area.Name = factor(crime$Area.Name)
+crime$Charge = factor(crime$Charge.Group.Description)
+crime$Charge.Group.Description = NULL
 crime$Sex.Code = factor(crime$Sex.Code)
 crime$Descent.Code = factor(crime$Descent.Code)
 races = c("Asian (other)","Black","Chinese","Cambodian","Filipino","Guamanian","Hispanic","Native American","Japanese","Korean","Laotian",
                               "Other", "Pacific Islander", "Samoan", "Hawaiian", "Vietnamese", "White", "Unknown", "Indian")
 code = c("A", "B", "C", "D", "F", "G", "H", "I", "J", "K", "L", "O", "P", "S", "U", "V", "W", "X", "Z")
 races = data.frame(Descent.Code = code, Descent = races)
-temp = merge(crime, races)
+crime = merge(crime, races)
+crime$Descent.Code = NULL
+
+tr = c(TRUE, TRUE, TRUE, TRUE, TRUE,
+       TRUE, TRUE, TRUE, FALSE, FALSE)
+te = c(FALSE, FALSE, FALSE, FALSE, FALSE,
+       FALSE, FALSE, FALSE, TRUE, TRUE)
+training = crime[tr,]
+testing = crime[te,]
+
+safety_levels = c("Safe", "Baseline", "Unsafe", "Dangerous")
 ```
 
 ## Data Exploration and Visualization
-
-### Double Density
+Lets look at how much crime happens in every area.
 ```{r}
-plot(density(crime$Age[crime$Sex.Code=="F"]), col="purple", xlab="Age", main="Age of Suspect")
-lines(density(crime$Age[crime$Sex.Code=="M"]), col="red")
+par(mar = c(2,7,2,2))
+barplot(table(crime$Area.Name), horiz = TRUE, las = 1, col=rainbow(length(unique(crime$Area.Name))), main = "All Crime by Area")
 ```
-## Based of ethicnicity
+Central is by far the most impacted by crime.  Let's split this up by types of Crime: Infraction, Misdemeanor, and Felony.
+
 ```{r}
-plot(crime$Sex.Code, col = c("purple","darkred"))
-plot(crime$Descent.Code, col = c("purple","darkred"))
+par(mar = c(2,7,2,2))
+
+barplot(table(crime$Area.Name[crime$Arrest.Type.Code=="I"]), horiz = TRUE, las = 1, col=rainbow(length(unique(crime$Area.Name))), main="Infractions by Area")
+
+barplot(table(crime$Area.Name[crime$Arrest.Type.Code=="M"]), horiz = TRUE, las = 1, col=rainbow(length(unique(crime$Area.Name))), main="Misdemeanor by Area")
+
+barplot(table(crime$Area.Name[crime$Arrest.Type.Code=="F"]), horiz = TRUE, las = 1, col=rainbow(length(unique(crime$Area.Name))), main="Felony by Area")
+
+
+```
+
+```{r}
+area = vector()
+area["77th Street"] = 0
+area["Central"] = 0
+area["Devonshire"] = 0
+area["Foothill"] = 0
+area["Harbor"] = 0
+area["Hollenbeck"] = 0
+area["Hollywood"] = 0
+area["Mission"] = 0
+area["N Hollywood"] = 0
+area["Newton"] = 0
+area["Northeast"] = 0
+area["Olympic"] = 0
+area["Pacific"] = 0
+area["Rampart"] = 0
+area["Southeast"] = 0
+area["Southwest"] = 0
+area["Topanga"] = 0
+area["Van Nuys"] = 0
+area["West LA"] = 0
+area["West Valley"] = 0
+area["Wilshire"] = 0
+for (i in length(crime$Area.Name)) {
+  if (crime$Arrest.Type.Code[i] == "I") {
+    area[crime$Area.Name[i]] = area[crime$Area.Name[i]] + 1
+  } else if (crime$Arrest.Type.Code[i] == "M") {
+    area[crime$Area.Name[i]] = area[crime$Area.Name[i]] + 2
+  } else if (crime$Arrest.Type.Code[i] == "F") {
+    area[crime$Area.Name[i]] = area[crime$Area.Name[i]] + 3
+  }
+}
+area
+```
+#
+```{r}
+library(rpart)
+fit = rpart(Area.Name ~ Descent + Age + Arrest.Type.Code + Charge + Time, data = training[1:5000,], method="class")
+library(rpart.plot)
+prp(fit)
+```
+
+
+#Naive Bayes
+```{r}
+library(e1071)
+fit = naiveBayes(Area.Name ~ Descent + Age + Arrest.Type.Code + Charge + Time, data=training)
+predicts = predict(fit, newdata=testing)
+table(predicts, testing$Area.Name)
+sum(as.numeric(predicts == testing$Area.Name)) / nrow(testing)
+```
+
+
+
+```{r}
+
 ```
