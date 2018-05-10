@@ -67,15 +67,13 @@ barplot(table(crime$Area.Name), horiz = TRUE, las = 1, col=rainbow(length(unique
 Central is by far the most impacted by crime.  Let's split this up by types of Crime: Infraction, Misdemeanor, and Felony.
 
 ```{r}
-par(mar = c(2,7,2,2))
+infract=table(crime$Area.Name[crime$Arrest.Type.Code=="I"])
+misdem=table(crime$Area.Name[crime$Arrest.Type.Code=="M"])
+felon=table(crime$Area.Name[crime$Arrest.Type.Code=="F"])
 
-barplot(table(crime$Area.Name[crime$Arrest.Type.Code=="I"]), horiz = TRUE, las = 1, col=rainbow(length(unique(crime$Area.Name))), main="Infractions by Area")
-
-barplot(table(crime$Area.Name[crime$Arrest.Type.Code=="M"]), horiz = TRUE, las = 1, col=rainbow(length(unique(crime$Area.Name))), main="Misdemeanor by Area")
-
-barplot(table(crime$Area.Name[crime$Arrest.Type.Code=="F"]), horiz = TRUE, las = 1, col=rainbow(length(unique(crime$Area.Name))), main="Felony by Area")
-
-
+temp = rbind(infract,misdem,felon)
+par(mar = c(3,8,2,2))
+barplot(temp, horiz = TRUE, las = 1, main="Crimes by Area",  legend=c("Infraction", "Misdemeanor", "Felony"), col=c("yellow", "orange", "red"))
 ```
 
 ```{r}
@@ -135,3 +133,12 @@ sum(as.numeric(predicts == testing$Area.Name)) / nrow(testing)
 ```{r}
 
 ```
+
+
+
+
+
+
+
+
+
