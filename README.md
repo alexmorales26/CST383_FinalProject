@@ -2,8 +2,8 @@
 
 ## Collaborators
 
-###Alexander Morales
+### Alexander Morales
 
-###Jennifer Nguyen
+### Jennifer Nguyen
 
-###Dallas Dituri
+### Dallas Dituri
