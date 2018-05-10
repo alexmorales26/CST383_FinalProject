@@ -1,7 +1,9 @@
 # CST383_FinalProject
 
-## Collabrators
+## Collaborators
 
 ###Alexander Morales
+
 ###Jennifer Nguyen
+
 ###Dallas Dituri
